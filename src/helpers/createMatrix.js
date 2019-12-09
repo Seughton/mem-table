@@ -1,6 +1,7 @@
 import getRandomInt from "./generateRandomInt";
 
 export default function createMatrix(M, N, X) {
+	// Create 2D array with ID and random values
   return {matrix: Array(M)
     .fill()
     .map((x, idx) => {

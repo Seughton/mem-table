@@ -4,29 +4,29 @@ import "./Matrix.css";
 import createMatrix from "../../helpers/createMatrix";
 import computeColumns from "../../helpers/computeMatrixCol";
 import computeRows from "../../helpers/computeMatrixRow";
+import getRandomInt from '../../helpers/generateRandomInt';
 import sortAndFormat from "../../helpers/sortAndFormatMatrix";
 
 export default class Matrix extends Component {
-  state = {
-    matrix: null
-  };
 
-  componentDidMount() {
-    let setting = createMatrix(10, 10, 4);
-    this.setState({
-      matrix: setting.matrix,
-      numOfClosestValue: setting.numOfClosestCells,
-      formattedMatrix: sortAndFormat(setting.matrix),
-      colSum: computeColumns(setting.matrix),
-      rowSum: computeRows(setting.matrix)
-    });
-  }
+	constructor() {
+		super()
+		let setting = createMatrix(10, 10, 4);
+		this.state = {
+			matrix: setting.matrix || [],
+			numOfClosestValue: setting.numOfClosestCells,
+			formattedMatrix: sortAndFormat(setting.matrix),
+			colSum: computeColumns(setting.matrix),
+			rowSum: computeRows(setting.matrix)
+		};
+	}
 
-  componentDidUpdate(prevProps, prevState) {
-    console.log("prevState", prevState);
-  }
+  // componentDidMount() {
+ 
+  // }
 
   handleIncrementCellValue = id => {
+		// [TODO] Iterate first then do set state
     this.state.matrix.forEach((arr, idx) => {
       let findElem = arr.find((x, index) => {
         if (x.id === id) {
@@ -38,8 +38,6 @@ export default class Matrix extends Component {
             };
             return {
               matrix: incMatrix,
-              colSum: computeColumns(incMatrix),
-              rowSum: computeRows(incMatrix)
             };
           });
         }
@@ -48,6 +46,7 @@ export default class Matrix extends Component {
   };
 
   getClosest = (num, arr) => {
+		//find closest values
     if (num < arr[0].amount) {
       return arr[0];
     } else if (num > arr[arr.length - 1].amount) {
@@ -61,7 +60,7 @@ export default class Matrix extends Component {
   };
 
   handleHighlightClosest = (id, value) => {
-    // get closest values and highlight
+		// get closest values and highlight
     let closestID = this.getClosest(value, this.state.formattedMatrix);
     this.setState({
       formattedMatrix: sortAndFormat(this.state.formattedMatrix)
@@ -69,23 +68,30 @@ export default class Matrix extends Component {
 
     if (closestID.length) {
       closestID.forEach(id => {
-        this.refs[id].classList.add("hightlight");
+				if(this.refs[id]) {
+					this.refs[id].classList.add("hightlight")
+				}
       });
     }
   };
 
-  handleRemoveHighlight = () => {
-    let elems = [...document.querySelectorAll(".hightlight")];
+  handleRemoveClassName = selector => {
+    let elems = [...document.querySelectorAll(`.${selector}`)];
     if (elems.length)
       elems.forEach(elem => {
-        elem.classList.remove("hightlight");
+        elem.classList.remove(selector);
       });
   };
 
-  setRowPercentage = (idx, elem) => {};
+  showAddClassName = (selector, className) => {
+    let elems = [...document.querySelectorAll(`.${selector}`)];
+    if (elems.length)
+      elems.forEach(elem => {
+        elem.classList.add(className);
+      });
+  };
 
   getRowPercentage = (idx, elem) => {
-    let row = [...this.state.matrix[idx]];
     this.setState({ showPercentage: { idx, elem } });
   };
 
@@ -93,12 +99,39 @@ export default class Matrix extends Component {
     this.setState({ showPercentage: false });
   };
 
-  render() {
-    let { matrix, rowSum, colSum, showPercentage } = this.state;
+  handleAddRow = (elem, idx) => {
+		// add row in the end of the table with random values
+		let arr = Array(10).fill().map((elem,index) => {
+				return {
+					amount: getRandomInt(),
+					id: `${this.state.matrix.length.toString() + index}`
+				}
+			})
+    this.setState({
+			matrix: [...this.state.matrix, arr],
+			formattedMatrix: sortAndFormat(this.state.matrix)
+		})
+  };
 
+  handleDeleteRow = (elem, idx) => {
+		// delete selected row from table
+		this.setState({
+			matrix: this.state.matrix.filter( (row,rowId) => idx !== rowId),
+			rowSum: this.state.rowSum.filter( (row,rowId) => idx !== rowId),
+			formattedMatrix: sortAndFormat(this.state.matrix),
+		})
+  };
+
+  render() {
+    let { matrix, showPercentage } = this.state;
+
+		// Calculate percentage for row cells
     let calcPercentage = (amount, elem) => {
       return parseFloat((amount / elem) * 100).toFixed(1);
-    };
+		};
+		
+		let colSum = computeColumns(matrix) || []
+		let rowSum = computeRows(matrix) || []
 
     return (
       <>
@@ -123,7 +156,9 @@ export default class Matrix extends Component {
                                     col.amount
                                   )
                                 }
-                                onMouseOut={() => this.handleRemoveHighlight()}
+                                onMouseOut={() =>
+                                  this.handleRemoveClassName("hightlight")
+                                }
                                 ref={col.id}
                               >
                                 <span
@@ -172,24 +207,53 @@ export default class Matrix extends Component {
             </table>
             <table className="sub-matrix">
               <tbody>
+                <tr>
+                  {rowSum
+                    ? rowSum.map((elem, idx) => {
+                        return (
+                          <tr key={idx}>
+                            <td
+                              onMouseOver={() =>
+                                this.getRowPercentage(idx, elem)
+                              }
+                              onMouseOut={() => this.returnRowValues(idx)}
+                              key={idx}
+                            >
+                              {elem}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    : null}
+                </tr>
+              </tbody>
+            </table>
+            <table>
+							<tbody>
+              <tr>
                 {rowSum
                   ? rowSum.map((elem, idx) => {
-                      return (
-                        <tr key={idx}>
+										return (
+                        <tr
+                          key={idx}
+                          className="button-group"
+                        >
                           <td
-                            onMouseOver={() => this.getRowPercentage(idx, elem)}
-                            onMouseOut={() => this.returnRowValues(idx)}
-                            key={idx}
-                          >
-                            {elem}
-                          </td>
+                            onClick={() => this.handleDeleteRow(elem, idx)}
+                            className={"dltBtn"}
+                          ></td>
                         </tr>
                       );
                     })
                   : null}
-              </tbody>
+              </tr>
+							</tbody>
             </table>
           </div>
+				<div
+					className="addBtn"
+					onClick={() => this.handleAddRow()}
+				></div>
         </div>
       </>
     );
