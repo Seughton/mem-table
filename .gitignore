@@ -10,6 +10,7 @@
 
 # production
 /build
+/memcrab
 
 # misc
 .DS_Store
