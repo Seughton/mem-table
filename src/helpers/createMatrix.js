@@ -6,6 +6,7 @@ export default function createMatrix(M, N, X) {
     .fill()
     .map((x, idx) => {
 			let index = idx.toString()
+			//fill matrix with random number
 			return Array(N).fill().map( (x,id) => {
 				return {
 					amount: getRandomInt(),
