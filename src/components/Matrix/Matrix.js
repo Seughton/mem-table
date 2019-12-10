@@ -88,16 +88,26 @@ export default class Matrix extends Component {
 
   handleCreateMatrix = () => {
     const { matrixM, matrixN, matrixX } = this.state;
-    // init 2d matrix
-    
-    let setting = createMatrix(matrixM, matrixN, matrixX);
-    this.setState({
-      matrix: setting.matrix || [],
-      numOfClosestValue: setting.numOfClosestCells,
-      formattedMatrix: sortAndFormat(setting.matrix),
-      colSum: computeColumns(setting.matrix),
-      rowSum: computeRows(setting.matrix)
-    });
+    // init and validate 2d matrix
+
+    this.handleRemoveClassName("input-validate")
+    if (matrixM <= 15 && matrixN <= 15) {
+      let setting = createMatrix(matrixM, matrixN, matrixX);
+      this.setState({
+        matrix: setting.matrix || [],
+        numOfClosestValue: setting.numOfClosestCells,
+        formattedMatrix: sortAndFormat(setting.matrix),
+        colSum: computeColumns(setting.matrix),
+        rowSum: computeRows(setting.matrix)
+      });
+    } else {
+      let inputs = [...document.getElementsByTagName("input")]
+      inputs.forEach(input => {
+        if (input.value > 15) {
+          input.classList.add("input-validate")
+        }
+      })
+    }
   };
 
   getRowPercentage = (idx, elem) => {
@@ -156,6 +166,7 @@ export default class Matrix extends Component {
             onChange={e => this.handleInputChange(e)}
             required
             min="1"
+            max="15"
           ></input>
           <input
             placeholder="N"
@@ -164,6 +175,7 @@ export default class Matrix extends Component {
             onChange={e => this.handleInputChange(e)}
             required
             min="1"
+            max='15'
           ></input>
           <input
             placeholder="X"
@@ -181,93 +193,93 @@ export default class Matrix extends Component {
               <tbody>
                 {matrix
                   ? matrix.map((row, id) => {
-                      return (
-                        <tr key={id}>
-                          {row.map(col => {
-                            return (
-                              <td
-                                key={col.id}
-                                onClick={() => this.handleIncrementCellValue(col.id)}
-                                onMouseOver={() => this.handleHighlightClosest(col.id, col.amount)}
-                                onMouseOut={() => this.handleRemoveClassName("hightlight")}
-                                ref={col.id}
+                    return (
+                      <tr key={id}>
+                        {row.map(col => {
+                          return (
+                            <td
+                              key={col.id}
+                              onClick={() => this.handleIncrementCellValue(col.id)}
+                              onMouseOver={() => this.handleHighlightClosest(col.id, col.amount)}
+                              onMouseOut={() => this.handleRemoveClassName("hightlight")}
+                              ref={col.id}
+                            >
+                              <span
+                                className={
+                                  showPercentage && id === showPercentage.idx
+                                    ? "percentWidth"
+                                    : ""
+                                }
+                                style={{
+                                  width: showPercentage ?
+                                    `${calcPercentage(col.amount, showPercentage.elem)}%`
+                                    : ""
+                                }}
                               >
-                                <span
-                                  className={ 
-                                    showPercentage && id === showPercentage.idx
-                                      ? "percentWidth"
-                                      : ""
-                                  }
-                                  style={{
-                                    width: showPercentage ? 
-                                      `${calcPercentage(col.amount, showPercentage.elem)}%`
-                                      : ""
-                                  }}
-                                >
-                                  {showPercentage
-                                    ? id === showPercentage.idx
-                                      ? calcPercentage(col.amount, showPercentage.elem)
-                                      : col.amount
-                                    : col.amount}
-                                </span>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })
+                                {showPercentage
+                                  ? id === showPercentage.idx
+                                    ? calcPercentage(col.amount, showPercentage.elem)
+                                    : col.amount
+                                  : col.amount}
+                              </span>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })
                   : null}
                 <tr className="matrix-colsum">
                   {colSum
                     ? colSum.map((sum, idx) => {
-                        return (
-                          <td key={idx}>
-                            {(sum ^ 0) === sum ? sum : Math.ceil(sum)}
-                          </td>
-                        );
-                      })
+                      return (
+                        <td key={idx}>
+                          {(sum ^ 0) === sum ? sum : Math.ceil(sum)}
+                        </td>
+                      );
+                    })
                     : null}
                 </tr>
               </tbody>
             </table>
             <div className="sub-matrix-container">
-            <table className="sub-matrix">
-              <tbody>
+              <table className="sub-matrix">
+                <tbody>
                   {rowSum
                     ? rowSum.map((elem, idx) => {
-                        return (
-                          <tr key={idx}>
-                            <td
-                              onMouseOver={() => this.getRowPercentage(idx, elem)}
-                              onMouseOut={() => this.returnRowValues(idx)}
-                              key={idx}
-                            >
-                              {elem}
-                            </td>
-                          </tr>
-                        );
-                      })
+                      return (
+                        <tr key={idx}>
+                          <td
+                            onMouseOver={() => this.getRowPercentage(idx, elem)}
+                            onMouseOut={() => this.returnRowValues(idx)}
+                            key={idx}
+                          >
+                            {elem}
+                          </td>
+                        </tr>
+                      );
+                    })
                     : null}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
               {
-              matrix.length ? <div className="addBtn" onClick={() => this.handleAddRow()}></div> : ""
+                matrix.length ? <div className="addBtn" onClick={() => this.handleAddRow()}></div> : ""
               }
             </div>
             <table className="edit-col">
               <tbody>
-                  {rowSum
-                    ? rowSum.map((elem, idx) => {
-                        return (
-                          <tr key={idx} className="button-group">
-                            <td
-                              onClick={() => this.handleDeleteRow(elem, idx)}
-                              className={"dltBtn"}
-                            ></td>
-                          </tr>
-                        );
-                      })
-                    : null}
+                {rowSum
+                  ? rowSum.map((elem, idx) => {
+                    return (
+                      <tr key={idx} className="button-group">
+                        <td
+                          onClick={() => this.handleDeleteRow(elem, idx)}
+                          className={"dltBtn"}
+                        ></td>
+                      </tr>
+                    );
+                  })
+                  : null}
               </tbody>
             </table>
           </div>

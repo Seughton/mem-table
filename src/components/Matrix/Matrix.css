@@ -61,6 +61,7 @@ input {
 
 .matrix-group {
   display: flex;
+  /* width: 100%; */
 }
 
 .sub-matrix-container {
@@ -125,7 +126,7 @@ table tr td:hover {
 
 .button-group {
   display: flex;
-  height: 37px;
+  height: 34px;
   width: 75px;
   align-items: center;
   justify-content: space-around;
@@ -173,4 +174,17 @@ table tr td:hover {
 
 .addBtn:hover,.dltBtn:hover {
   opacity: 1;
+}
+
+.input-validate {
+  box-shadow: 0 0 2px 1px red;
+}
+
+@media screen and (max-width: 600px) and (max-height: 600px) {
+  .matrix-container {
+    top: 78px
+  }
+  .matrix-group {
+    width: 100%;
+  }
 }
